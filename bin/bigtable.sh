@@ -64,7 +64,7 @@ function loadTable {
 }
 
 function shortPerfRun {
-  ./bin/ycsb run googlebigtable2 \
+  ./bin/ycsb run googlebigtable \
     -jvm-args ' -Xmx4096m' \
     -threads 8 \
     -P workloads/workloada \
@@ -85,7 +85,7 @@ function shortPerfRun {
 }
 
 function clientLoadRun {
-  ./bin/ycsb run googlebigtable2 \
+  ./bin/ycsb run googlebigtable \
     -jvm-args ' -Xmx4096m' \
     -threads 80 \
     -P workloads/workloada \
