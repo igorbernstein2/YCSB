@@ -47,6 +47,7 @@ function loadTable {
     -jvm-args ' -Xmx4096m' \
     -threads 1 \
     -P workloads/workloada \
+    -p zeropadding=7 \
     -p recordcount=$COUNT \
     -p operationcount=$COUNT \
     -p insertcount=$COUNT \
@@ -68,6 +69,7 @@ function shortPerfRun {
     -jvm-args ' -Xmx4096m' \
     -threads 8 \
     -P workloads/workloada \
+    -p zeropadding=7 \
     -p recordcount=$COUNT \
     -p operationcount=$COUNT \
     -p insertcount=$COUNT \
@@ -89,6 +91,7 @@ function clientLoadRun {
     -jvm-args ' -Xmx4096m' \
     -threads 80 \
     -P workloads/workloada \
+    -p zeropadding=7 \
     -p recordcount=$COUNT \
     -p operationcount=$COUNT \
     -p maxexecutiontime=1200 \
