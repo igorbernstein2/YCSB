@@ -33,7 +33,7 @@ function run {
 }
 
 function createTable {
-  cbt -project $P -instance $I createtable $1
+  seq -f "user%02G" 0 100 | xargs cbt -project $P -instance $I createtable $1
   cbt -project $P -instance $I createfamily $1 cf
   cbt -project $P -instance $I setgcpolicy $1 cf maxversions=1
 }
