@@ -3,7 +3,7 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <parent>
-    <artifactId>root</artifactId>
+    <artifactId>binding-parent</artifactId>
     <groupId>com.yahoo.ycsb</groupId>
     <version>0.14.0-SNAPSHOT</version>
     <relativePath>../binding-parent/</relativePath>
@@ -26,7 +26,7 @@
     <dependency>
       <groupId>com.google.cloud</groupId>
       <artifactId>google-cloud-bigtable</artifactId>
-      <version>${googlebigtable2.version}</version>
+      <version>${google-cloud-bigtable.version}</version>
     </dependency>
   </dependencies>
 </project>
