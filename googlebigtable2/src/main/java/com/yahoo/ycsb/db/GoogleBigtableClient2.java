@@ -19,7 +19,6 @@ package com.yahoo.ycsb.db;
 import static com.google.cloud.bigtable.data.v2.models.Filters.FILTERS;
 
 import com.google.api.core.ApiFuture;
-import com.google.api.core.ApiFutures;
 import com.google.api.gax.rpc.ServerStream;
 import com.google.cloud.bigtable.data.v2.BigtableDataClient;
 import com.google.cloud.bigtable.data.v2.models.BulkMutationBatcher;
@@ -110,11 +109,12 @@ public class GoogleBigtableClient2 extends com.yahoo.ycsb.DB {
                 .futureCall(Query.create("fake-table"));
             warmupFutures.add(future);
           }
-          ApiFuture<List<Object>> warmupFuture = ApiFutures.allAsList(warmupFutures);
-          try {
-            warmupFuture.get(2, TimeUnit.MINUTES);
-          } catch (Exception e) {
-            // Ignore errors: only wanted to warmup the connection pool
+          for (ApiFuture<?> future : warmupFutures) {
+            try {
+              future.get(20, TimeUnit.SECONDS);
+            } catch (Exception e) {
+              // Ignore errors: only wanted to warmup the connection pool
+            }
           }
         }
       }
