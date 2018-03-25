@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+set -ex
 
 P=igorbernstein-dev
 I=benchmarks
@@ -26,7 +27,7 @@ function run {
       clientLoadRun $TABLE
       ;;
     *)
-      echo "Unknown test: $1" 1>&2
+      echo "Unknown action: $1" 1>&2
       exit 1
   esac
 }
