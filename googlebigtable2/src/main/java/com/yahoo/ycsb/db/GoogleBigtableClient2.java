@@ -18,6 +18,8 @@ package com.yahoo.ycsb.db;
 
 import static com.google.cloud.bigtable.data.v2.models.Filters.FILTERS;
 
+import com.google.api.core.ApiFuture;
+import com.google.api.core.ApiFutures;
 import com.google.api.gax.rpc.ServerStream;
 import com.google.cloud.bigtable.data.v2.BigtableDataClient;
 import com.google.cloud.bigtable.data.v2.models.BulkMutationBatcher;
@@ -29,6 +31,7 @@ import com.google.cloud.bigtable.data.v2.models.Row;
 import com.google.cloud.bigtable.data.v2.models.RowCell;
 import com.google.cloud.bigtable.data.v2.models.RowMutation;
 import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.UnsafeByteOperations;
@@ -38,10 +41,12 @@ import com.yahoo.ycsb.InputStreamByteIterator;
 import com.yahoo.ycsb.Status;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Vector;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.threeten.bp.Duration;
@@ -60,6 +65,7 @@ public class GoogleBigtableClient2 extends com.yahoo.ycsb.DB {
   private static final String INSTANCE_PROP = "bigtable.instance";
   private static final String COLUMN_FAMILY_PROP = "bigtable.family";
   private static final String ENABLE_BATCHING_PROP = "bigtable.batching";
+  private static final String WARMUP_CONNECTION_PROP = "bigtable.warmup";
 
   // Shared client
   private static final Object LOCK = new Object();
@@ -67,6 +73,7 @@ public class GoogleBigtableClient2 extends com.yahoo.ycsb.DB {
   private static String columnFamily;
   private static int sharedClientRefCount = 0;
   private static boolean enableBatching;
+  private static boolean enableWarmup;
 
   // Per thread state
   private BulkMutationBatcher batcher;
@@ -78,6 +85,7 @@ public class GoogleBigtableClient2 extends com.yahoo.ycsb.DB {
         enableBatching =
             Boolean.parseBoolean(getProperties().getProperty(ENABLE_BATCHING_PROP, "false"));
         columnFamily = getProperties().getProperty(COLUMN_FAMILY_PROP, "cf");
+        enableWarmup = Boolean.parseBoolean(getProperties().getProperty(WARMUP_CONNECTION_PROP, "true"));
 
         InstanceName instanceName;
         try {
@@ -93,6 +101,21 @@ public class GoogleBigtableClient2 extends com.yahoo.ycsb.DB {
           sharedClient = BigtableDataClient.create(instanceName);
         } catch (IOException e) {
           throw new DBException("Failed to create the shared client", e);
+        }
+
+        if (enableWarmup) {
+          List<ApiFuture<?>> warmupFutures = Lists.newArrayList();
+          for (int i = 0; i < 100; i++) {
+            ApiFuture<Row> future = sharedClient.readRowsCallable().first()
+                .futureCall(Query.create("fake-table"));
+            warmupFutures.add(future);
+          }
+          ApiFuture<List<Object>> warmupFuture = ApiFutures.allAsList(warmupFutures);
+          try {
+            warmupFuture.get(2, TimeUnit.MINUTES);
+          } catch (Exception e) {
+            // Ignore errors: only wanted to warmup the connection pool
+          }
         }
       }
 
