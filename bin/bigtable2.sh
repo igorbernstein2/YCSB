@@ -9,40 +9,47 @@ COUNT=10000000
 
 
 function run {
-  ACTION=$1
-  TABLE=${2:-usertable}
+  TABLE=${1:-usertable2}
 
-  case $ACTION in
-    create)
-      createTable $TABLE
-      loadTable $TABLE
-      ;;
-    cleanup)
-      cbt -project $P -instance $I deletetable $TABLE
-      ;;
-    perf)
-      shortPerfRun $TABLE
-      ;;
-    client-load)
-      clientLoadRun $TABLE
-      ;;
-    *)
-      echo "Unknown action: $1" 1>&2
-      exit 1
-  esac
+  createTable $TABLE
+
+  for i in `seq 1 3`; do
+    runBenchmark "new-run${i}" $TABLE
+  done
+
+  deleteTable $TABLE
 }
 
 function createTable {
-  seq -f "user%02G" 0 100 | xargs cbt -project $P -instance $I createtable $1
-  cbt -project $P -instance $I createfamily $1 cf
-  cbt -project $P -instance $I setgcpolicy $1 cf maxversions=1
+  TABLE=$1
+
+  seq -f "user%02G" 0 100 | xargs cbt -project $P -instance $I createtable $TABLE
+  cbt -project $P -instance $I createfamily $TABLE cf
+  cbt -project $P -instance $I setgcpolicy $TABLE cf maxversions=1
 }
 
 function deleteTable {
-  cbt -project $P -instance $I deletetable $1
+  TABLE=$1
+
+  cbt -project $P -instance $I deletetable $TABLE
+}
+
+function runBenchmark {
+  PREFIX=$1
+  TABLE=$2
+
+  OUTPUT="log/$PREFIX"
+  mkdir -p $OUTPUT
+
+  loadTable $OUTPUT $TABLE
+  shortPerfRun $OUTPUT $TABLE
+  clientLoadRun $OUTPUT $TABLE
 }
 
 function loadTable {
+  OUTPUT=$1
+  TABLE=$2
+
   bin/ycsb load googlebigtable2 \
     -jvm-args ' -Xmx4096m' \
     -threads 1 \
@@ -55,14 +62,17 @@ function loadTable {
     -p measurementtype=hdrhistogram \
     -p measurement.interval=intended \
     -p hdrhistogram.fileoutput=true \
-    -p hdrhistogram.output.path=logs/load2.hdr \
+    -p hdrhistogram.output.path=$OUTPUT/load.hdr \
     -p bigtable.instance=projects/$P/instances/$I \
-    -p table=$1 \
+    -p table=$TABLE \
     -p bigtable.batching=true \
-    -s | tee logs/load2.log
+    -s | tee $OUTPUT/load.log
 }
 
 function shortPerfRun {
+  OUTPUT=$1
+  TABLE=$2
+
   ./bin/ycsb run googlebigtable2 \
     -jvm-args ' -Xmx4096m' \
     -threads 8 \
@@ -75,14 +85,17 @@ function shortPerfRun {
     -p measurementtype=hdrhistogram \
     -p measurement.interval=intended \
     -p hdrhistogram.fileoutput=true \
-    -p hdrhistogram.output.path=logs/short-perf-run2.hdr \
+    -p hdrhistogram.output.path=$OUTPUT/short-perf.hdr \
     -p bigtable.instance=projects/$P/instances/$I \
-    -p table=$1 \
+    -p table=$TABLE \
     -p bigtable.batching=false \
-    -s | tee logs/short-perf-run2.log
+    -s | tee $OUTPUT/short-perf.log
 }
 
 function clientLoadRun {
+  OUTPUT=$1
+  TABLE=$2
+
   ./bin/ycsb run googlebigtable2 \
     -jvm-args ' -Xmx4096m' \
     -threads 80 \
@@ -94,11 +107,11 @@ function clientLoadRun {
     -p measurementtype=hdrhistogram \
     -p measurement.interval=intended \
     -p hdrhistogram.fileoutput=true \
-    -p hdrhistogram.output.path=logs/client-load-run2.hdr \
+    -p hdrhistogram.output.path=$OUTPUT/client-load.hdr \
     -p bigtable.instance=projects/$P/instances/$I \
-    -p table=$1 \
+    -p table=$TABLE \
     -p bigtable.batching=false \
-    -s | tee logs/clientload-run2.log
+    -s | tee $OUTPUT/client-load.log
 }
 
 run "$@"

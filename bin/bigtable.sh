@@ -9,37 +9,41 @@ COUNT=10000000
 
 
 function run {
-  ACTION=$1
-  TABLE=${2:-usertable}
+  TABLE=${1:-usertable}
 
-  case $ACTION in
-    create)
-      createTable $TABLE
-      loadTable $TABLE
-      ;;
-    cleanup)
-      cbt -project $P -instance $I deletetable $TABLE
-      ;;
-    perf)
-      shortPerfRun $TABLE
-      ;;
-    client-load)
-      clientLoadRun $TABLE
-      ;;
-    *)
-      echo "Unknown action: $1" 1>&2
-      exit 1
-  esac
+  createTable $TABLE
+
+  for i in `seq 1 3`; do
+    runBenchmark "old-run${i}" $TABLE
+  done
+
+  deleteTable $TABLE
 }
 
 function createTable {
-  seq -f "user%02G" 0 100 | xargs cbt -project $P -instance $I createtable $1
-  cbt -project $P -instance $I createfamily $1 cf
-  cbt -project $P -instance $I setgcpolicy $1 cf maxversions=1
+  TABLE=$1
+
+  seq -f "user%02G" 0 100 | xargs cbt -project $P -instance $I createtable $TABLE
+  cbt -project $P -instance $I createfamily $TABLE cf
+  cbt -project $P -instance $I setgcpolicy $TABLE cf maxversions=1
 }
 
 function deleteTable {
-  cbt -project $P -instance $I deletetable $1
+  TABLE=$1
+
+  cbt -project $P -instance $I deletetable $TABLE
+}
+
+function runBenchmark {
+  PREFIX=$1
+  TABLE=$2
+
+  OUTPUT="log/$PREFIX"
+  mkdir -p $LOGS
+
+  loadTable $OUTPUT $TABLE
+  shortPerfRun $OUTPUT $TABLE
+  clientLoadRun $OUTPUT $TABLE
 }
 
 function loadTable {
