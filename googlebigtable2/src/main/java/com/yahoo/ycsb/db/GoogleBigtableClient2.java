@@ -34,6 +34,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.UnsafeByteOperations;
+import com.yahoo.ycsb.ByteArrayByteIterator;
 import com.yahoo.ycsb.ByteIterator;
 import com.yahoo.ycsb.DBException;
 import com.yahoo.ycsb.InputStreamByteIterator;
@@ -255,7 +256,7 @@ public class GoogleBigtableClient2 extends com.yahoo.ycsb.DB {
     for (RowCell cell : row.getCells()) {
       hash.put(
           cell.getQualifier().toStringUtf8(),
-          new InputStreamByteIterator(cell.getValue().newInput(), cell.getValue().size()));
+          new ByteArrayByteIterator(cell.getValue().toByteArray()));
     }
   }
 
