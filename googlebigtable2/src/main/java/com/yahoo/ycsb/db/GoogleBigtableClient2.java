@@ -37,7 +37,6 @@ import com.google.protobuf.UnsafeByteOperations;
 import com.yahoo.ycsb.ByteArrayByteIterator;
 import com.yahoo.ycsb.ByteIterator;
 import com.yahoo.ycsb.DBException;
-import com.yahoo.ycsb.InputStreamByteIterator;
 import com.yahoo.ycsb.Status;
 import java.io.IOException;
 import java.util.HashMap;
