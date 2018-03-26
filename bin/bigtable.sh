@@ -47,6 +47,9 @@ function runBenchmark {
 }
 
 function loadTable {
+  OUTPUT=$1
+  TABLE=$2
+
   bin/ycsb load googlebigtable \
     -jvm-args ' -Xmx4096m' \
     -threads 1 \
@@ -59,16 +62,19 @@ function loadTable {
     -p measurementtype=hdrhistogram \
     -p measurement.interval=intended \
     -p hdrhistogram.fileoutput=true \
-    -p hdrhistogram.output.path=logs/load.hdr \
+    -p hdrhistogram.output.path=$OUTPUT/load.hdr \
     -p google.bigtable.project.id=$P \
     -p google.bigtable.instance.id=$I \
-    -p table=$1 \
+    -p table=$TABLE \
     -p columnfamily=cf \
     -p clientbuffering=true \
-    -s | tee logs/load.log
+    -s | tee $OUTPUT/load.log
 }
 
 function shortPerfRun {
+  OUTPUT=$1
+  TABLE=$2
+
   ./bin/ycsb run googlebigtable \
     -jvm-args ' -Xmx4096m' \
     -threads 8 \
@@ -81,16 +87,19 @@ function shortPerfRun {
     -p measurementtype=hdrhistogram \
     -p measurement.interval=intended \
     -p hdrhistogram.fileoutput=true \
-    -p hdrhistogram.output.path=logs/short-perf-run.hdr \
+    -p hdrhistogram.output.path=$OUTPUT/short-perf.hdr \
     -p google.bigtable.project.id=$P \
     -p google.bigtable.instance.id=$I \
-    -p table=$1 \
+    -p table=$TABLE \
     -p columnfamily=cf \
     -p clientbuffering=false \
-    -s | tee logs/short-perf-run.log
+    -s | tee $OUTPUT/short-perf.log
 }
 
 function clientLoadRun {
+  OUTPUT=$1
+  TABLE=$2
+
   ./bin/ycsb run googlebigtable \
     -jvm-args ' -Xmx4096m' \
     -threads 80 \
@@ -102,13 +111,13 @@ function clientLoadRun {
     -p measurementtype=hdrhistogram \
     -p measurement.interval=intended \
     -p hdrhistogram.fileoutput=true \
-    -p hdrhistogram.output.path=logs/client-load-run.hdr \
+    -p hdrhistogram.output.path=$OUTPUT/client-load.hdr \
     -p google.bigtable.project.id=$P \
     -p google.bigtable.instance.id=$I \
-    -p table=$1 \
+    -p table=$TABLE \
     -p columnfamily=cf \
     -p clientbuffering=false \
-    -s | tee logs/clientload-run.log
+    -s | tee $OUTPUT/client-load.log
 }
 
 run "$@"
