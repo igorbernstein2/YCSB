@@ -39,7 +39,7 @@ function runBenchmark {
   TABLE=$2
 
   OUTPUT="log/$PREFIX"
-  mkdir -p $LOGS
+  mkdir -p $OUTPUT
 
   loadTable $OUTPUT $TABLE
   shortPerfRun $OUTPUT $TABLE
