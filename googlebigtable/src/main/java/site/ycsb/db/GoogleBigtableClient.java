@@ -139,7 +139,10 @@ public class GoogleBigtableClient extends site.ycsb.DB {
       builder = BigtableDataSettings.newBuilder();
     }
 
-    builder.setProjectId(projectId).setInstanceId(instanceId);
+    builder
+        .setProjectId(projectId)
+        .setInstanceId(instanceId)
+        .setRefreshingChannel(true);
 
     if (jsonKeyFilePath != null) {
       try (FileInputStream fin = new FileInputStream(jsonKeyFilePath)) {
