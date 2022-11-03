@@ -99,6 +99,7 @@ public class GoogleBigtableClient extends site.ycsb.DB {
   private static synchronized BigtableDataClient getOrCreateClient(Properties properties)
       throws DBException {
     if (clientRefcount > 0) {
+      clientRefcount++;
       return client;
     }
 
